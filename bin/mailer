@@ -1,0 +1,50 @@
+#!/usr/bin/env node
+
+'use strict';
+
+const fs = require('fs');
+const program = require('commander');
+const main = require('../app/main.js');
+
+let dir = './tmp';
+if (!fs.existsSync(dir)){
+    fs.mkdirSync(dir);
+}
+
+
+function list(val) {
+  return val.split(',').map((item)=> item.trim());
+}
+
+program
+    .version('1.0')
+    .description('send daily mail')
+    .option('--scheduler', 'start as a scheduler process')
+    .option('--url [url]', 'which page to send', null)
+    .option('--subject [subject]', 'email subject', 'web2mail')
+    .option('--to [to]', 'email to', null)
+    .option('--from [from]', 'email from', null)
+    .option('--selectors <selectors>', 'css selectors to convert to image', list)
+    .option('--job <job>', 'job file path potentialy overrides other config options');
+
+program.parse(process.argv); // end with parse to parse through the input
+
+let options = {
+  url: program.url,
+  subject: program.subject,
+  to: program.to,
+  from: program.from,
+  selectors: program.selectors,
+};
+if (program.job){
+  options = Object.assign(options, require(`../${program.job}`) );
+}
+
+(async () => {
+  if (program.scheduler){
+    main.initScheduler(options);
+  }else{
+    await main.scrapeAndSend(options);
+  }
+})();
+if (process.argv.length <= 2) program.help();
