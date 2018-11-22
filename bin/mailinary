@@ -18,7 +18,7 @@ function list(val) {
 
 program
     .version('1.0')
-    .description('send daily mail')
+    .description('schedule scraping and sending of web pages')
     .option('--scheduler', 'start as a scheduler process')
     .option('--url [url]', 'which page to send', null)
     .option('--subject [subject]', 'email subject', 'web2mail')
