@@ -8,6 +8,7 @@ class Scraper{
     this.browser = null;
     this.page = null;
     this.id = uuidv4();
+    this.runAt = moment();
   }
 
   async load(){
@@ -81,7 +82,7 @@ class Scraper{
 
       let resp = await cloudinary.v2.uploader.upload(
         `tmp/element_${screenshot_id}.jpg`, 
-        {public_id:screenshot_id, folder:this.id, quality: 'auto:eco'}, 
+        {public_id:screenshot_id, folder: `mailinary/${this.runAt.format('YYYYMMDDTHHMM')}/${this.id}`, quality: 'auto:eco'}, 
         (result)=> {},
       );
 
