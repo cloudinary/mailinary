@@ -22,7 +22,6 @@ let Scraper = require("./scraper.js");
 let mailer = require("./mailer.js");
 let scheduler = require("./scheduler.js");
 
-log.info("initializing mailinary");
 
 async function scrapeAndSend(args){
   try{
