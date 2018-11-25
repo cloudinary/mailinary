@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "app/main.js",
+  "bin": {
+    "mailinary": "bin/mailinary"
+  },
   "scripts": {
   },
   "author": "",
