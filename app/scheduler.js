@@ -6,9 +6,9 @@ let mailer = require("./mailer.js");
 let crons = {};
 let jobsPath = 'jobs/scheduled';
 
-log.info(`starting mail scheduler service on ${jobsPath}`);
 
 function watch(){
+  log.info(`starting mail scheduler service on ${jobsPath}`);
   let files = fs.readdirSync(jobsPath);
   fs.watch(jobsPath, (event, filename)=>{
     let fileExists = fs.existsSync(`${jobsPath}/${filename}`);

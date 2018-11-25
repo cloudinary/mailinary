@@ -2,6 +2,15 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 
+
+let execDir= process.cwd();
+let installDir = path.join( __dirname, '..');
+if (installDir!=execDir){
+  // TODO support packaged installed from NPM
+  throw new Error('package does not support this feature yet');
+}
+
+
 let tmpdir = path.join(__dirname, '../tmp');
 if (!fs.existsSync(tmpdir)){
   fs.mkdirSync(tmpdir);
@@ -34,4 +43,6 @@ module.exports = {
   scrapeAndSend, 
   initScheduler,
 };
+
+
 
