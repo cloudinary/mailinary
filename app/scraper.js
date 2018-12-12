@@ -1,6 +1,7 @@
 const cloudinary = require('cloudinary');
 const puppeteer = require('puppeteer');
 const uuidv4 = require('uuid/v4');
+const moment = require('moment');
 
 class Scraper{
   constructor(options){
