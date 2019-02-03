@@ -14,7 +14,8 @@ class Scraper{
 
   async load(){
     try{
-      this.browser = await puppeteer.launch({headless:true, ignoreHTTPSErrors:true, args:['--enable-features=NetworkService']});
+      let headless = !(process.env.DEBUG_UI == 1);
+      this.browser = await puppeteer.launch({headless, ignoreHTTPSErrors:true, args:['--enable-features=NetworkService']});
       this.page = await this.browser.newPage();
     }catch(e){
       log.error("failed to initialize puppeteer");
@@ -30,6 +31,19 @@ class Scraper{
     }catch(e){
       log.error(`failed loading page $(url)`);
       throw e;
+    }
+
+    if (this.options.login_form){
+      for (let selector in this.options.login_form){
+        let value = this.options.login_form[selector];
+        if (typeof(value)=='string'){
+          await this.page.focus(selector);
+          await this.page.keyboard.type(value);
+        }else if (typeof(value)=='function'){
+          await value(this.page, selector);
+        }
+
+      }
     }
 
     if (this.options.page_load_timeout){
