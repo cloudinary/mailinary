@@ -27,7 +27,7 @@ async function scrapeAndSend(args){
   try{
     let scraper = new Scraper(args);
     let resp = await scraper.execute();
-    mailer.send(resp, args);
+    await mailer.send(resp, args);
   } catch(e){
     log.warn('failed executing scrapeAndSend');
     log.warn(e.message);

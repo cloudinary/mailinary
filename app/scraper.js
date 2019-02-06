@@ -156,7 +156,7 @@ class Scraper{
         if (typeof(this.options.sentinel.error_notifier.body)=='function'){
           body = await this.options.sentinel.error_notifier.body(this.page);
         }
-        mailer.send(body, this.options.sentinel.error_notifier);
+        await mailer.send(body, this.options.sentinel.error_notifier);
         throw new Error("sentinel check failed ");
       }
     }
