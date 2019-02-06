@@ -9,7 +9,7 @@ I had an attachment version but eventualy went with image hosting since mail mes
 Cloudinary, and sends the resulting HTML as a  mail message.
 
 
-## Setup ######################################################################
+## Setup 
 
 1. clone the repository 
 ```
@@ -33,6 +33,34 @@ CLOUDINARY_URL=YOUR_CLOUDINARY_URL
 ```
 bin/mailinary --url https://marketplace.clicdata.com/v/yYF0JrwBkrHw --subject "it works 🔥" --from reports@YOUR_DOMAIN --to YOU@YOUR_DOMAIN --selectors '#dashboard'
 ```
+
+
+### Job (configuration options): 
+
+- `to` <[string]> recepient email address list seperated by comma.
+- `from` <[string]> sender email address.
+- `subject` <?[string|function]> email message subject, either as string or a function that receives html and options object.
+- `url` <[string]> the url to scrape.
+- `selectors` <[Array<[string|RegExp]>]> array of strings or regular expressions of selectors of elements that would be replaced with a screenshot.
+- `page_load_timeout` <?[number]> add aditional wait time to page load.
+- `schedule ` <[string]> schedule in cron expression.
+- `login_form` <[Object|function]> either async function that receives a page handle and interacts with the page or an Object with element selector/value pairs .
+- `sentinel` <[Object]> a kill switch configuration for stale reports.
+  - `validate` <[function]> receives a handle to the element and checks if a condition is met.
+  - `error_notifier` <[Object]> error notifier configuration.
+    - `from` <[string]> sender email address.
+    - `to` <[string]> error notification recepient email address list seperated by comma.
+    - `subject` <?[string|function]> email message subject, either as string or a function that receives html and options object.
+
+
+## Debugging tips
+
+1. Turn off headless mode - sometimes it's useful to see what the browser is
+   displaying. Instead of launching in headless mode, launch a full version of
+   the browser using  `UI_DEBUG=1`:
+
+        UI_DEBUG=1 bin/mailinary --job jobs/schedule/sample
+
 
 ### But i don't have a Cloudinary account
 

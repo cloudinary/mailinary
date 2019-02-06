@@ -30,7 +30,8 @@ async function scrapeAndSend(args){
     mailer.send(resp, args);
   } catch(e){
     log.warn('failed executing scrapeAndSend');
-    throw e;
+    log.warn(e.message);
+    process.exit();
   }
 }
 

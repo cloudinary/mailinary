@@ -2,6 +2,7 @@ const cloudinary = require('cloudinary');
 const puppeteer = require('puppeteer');
 const uuidv4 = require('uuid/v4');
 const moment = require('moment');
+let mailer = require("./mailer.js");
 
 class Scraper{
   constructor(options){
@@ -33,17 +34,24 @@ class Scraper{
       throw e;
     }
 
-    if (this.options.login_form){
-      for (let selector in this.options.login_form){
-        let value = this.options.login_form[selector];
-        if (typeof(value)=='string'){
-          await this.page.focus(selector);
-          await this.page.keyboard.type(value);
-        }else if (typeof(value)=='function'){
-          await value(this.page, selector);
+    let redirected_to_login = this.page.url() != url;
+    let login_options = this.options.login_form;
+    if (login_options && redirected_to_login){
+      if (typeof(login_options)=='function'){
+        await login_options(this.page);
+      }else {
+        for (let selector in login_options){
+          let value = login_options[selector];
+          if (typeof(value)=='string'){
+            await this.page.focus(selector);
+            await this.page.keyboard.type(value);
+          }else if (typeof(value)=='function'){
+            await value(this.page, selector);
+          }
         }
-
+        await this.page.waitForNavigation();
       }
+      await this.page.goto(url, {timeout:30000, waitUntil: 'networkidle0'}); 
     }
 
     if (this.options.page_load_timeout){
@@ -60,12 +68,17 @@ class Scraper{
   }
 
   isRegexpSelector(selector){
-    return selector.match(/^\/.*\/[gimuy]*$/);
+    return selector instanceof RegExp || selector.match(/^\/.*\/[gimuy]*$/);
   }
 
   findElements(regexpSelector, html){
-    let [_, exp, flags] = regexpSelector.match(/\/(.*)\/([gimy]*)$/);
-    let re = new RegExp(exp, flags);
+    let re ;
+    if (regexpSelector instanceof RegExp) {
+      re = regexpSelector;
+    }else {
+      let [_, exp, flags] = regexpSelector.match(/\/(.*)\/([gimy]*)$/);
+      re = new RegExp(exp, flags);
+    }
 
     let selectors = [];
     let matches = null;
@@ -134,8 +147,24 @@ class Scraper{
     });
   }
 
+  async sentinel(){
+    if (this.options.sentinel){
+      let valid = await this.options.sentinel.validate(this.page);
+      if (!valid){
+
+        let body = 'aborted send , report with stale data';
+        if (typeof(this.options.sentinel.error_notifier.body)=='function'){
+          body = await this.options.sentinel.error_notifier.body(this.page);
+        }
+        mailer.send(body, this.options.sentinel.error_notifier);
+        throw new Error("sentinel check failed ");
+      }
+    }
+  }
+
   async execute(){
     await this.load();
+    await this.sentinel();
     await this.scrape();
     await this.removeHiddenElements();
     let html = await this.getPageHTML();
