@@ -66,7 +66,7 @@ bin/mailinary --url https://marketplace.clicdata.com/v/yYF0JrwBkrHw --subject "i
 
 You can sign up for a [free account](https://cloudinary.com/users/register/free) .
 
-To this date (nov 2018) Cloudinary's free plan includes 25 monthly credis (up to 25GB in storage / 25GB monthly bandwidth / 1000 monthly transformations)
+To this date (nov 2018) Cloudinary's free plan includes 25 monthly credits (1 Credit equals 1000 transformations or 1GB of managed storage or 1GB of monthly viewing bandwidth)
 which is more than plenty if you have a daily mail process in place.
 
 Additional resources are available at:
