@@ -3,6 +3,10 @@ const puppeteer = require('puppeteer');
 const uuidv4 = require('uuid/v4');
 const moment = require('moment');
 let mailer = require("./mailer.js");
+const fs = require('fs');
+const util = require('util');
+const writeFile = util.promisify(fs.writeFile);
+
 
 class Scraper{
   constructor(options){
@@ -30,7 +34,7 @@ class Scraper{
     try{
       await this.page.goto(url, {timeout:30000, waitUntil: 'networkidle0'}); 
     }catch(e){
-      log.error(`failed loading page $(url)`);
+      log.error(`failed loading page ${url}`);
       throw e;
     }
 
@@ -114,6 +118,8 @@ class Scraper{
         (result)=> {},
       );
 
+      log.info(`image loaded to: ${resp.url}`);
+
       await this.replaceHtmlWithImage({
         path: `tmp/element_${screenshot_id}.jpg`,
         url: resp.secure_url,
@@ -140,10 +146,15 @@ class Scraper{
 
   async removeHiddenElements(){
     await this.page.evaluate(()=>{
-      let hiddenElements =  Array.from($('*:hidden'));
-      for (let elem of hiddenElements){
-        elem.parentNode.removeChild(elem);
-      }
+      [].forEach.call(
+        document.querySelectorAll('body *'), 
+        function(element){
+          var elementDisplay = element.currentStyle ? element.currentStyle.display : getComputedStyle(element, null).display;
+          if (elementDisplay === 'none') {
+            element.parentNode.removeChild(element);
+          }
+        }
+      );
     });
   }
 
@@ -169,7 +180,14 @@ class Scraper{
     await this.removeHiddenElements();
     let html = await this.getPageHTML();
     this.browser.close();
+    await this.saveOutputForDebug(html);
     return html;
+  }
+
+  async saveOutputForDebug(html){
+    let filePath = `./tmp/mail-${this.id}.html`;
+    log.debug(`writing mail content to ${filePath}`);
+    await writeFile(filePath, html);
   }
 
   async screenshotDOMElement(opts = {}) {
@@ -215,7 +233,6 @@ class Scraper{
       if (!element.classList.contains('mailer-keep-original')){
         element.innerHTML = `<img src="${url}" width="100%"/>`;
       }
-
 
     }, selector, opts.url);
   }
