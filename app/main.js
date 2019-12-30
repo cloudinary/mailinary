@@ -39,9 +39,14 @@ function initScheduler(args){
   scheduler.watch();
 }
 
+function listJobs(args){
+  scheduler.listJobs();
+}
+
 module.exports = {
   scrapeAndSend, 
   initScheduler,
+  listJobs,
 };
 
 

@@ -20,6 +20,7 @@ program
     .version('1.0')
     .description('schedule scraping and sending of web pages')
     .option('--scheduler', 'start as a scheduler process')
+    .option('--ls', 'list all scheduled jobs')
     .option('--url [url]', 'which page to send', null)
     .option('--subject [subject]', 'email subject', 'web2mail')
     .option('--to [to]', 'email to', null)
@@ -43,6 +44,8 @@ if (program.job){
 (async () => {
   if (program.scheduler){
     main.initScheduler(options);
+  } else if (program.ls) {
+    main.listJobs(options);
   }else if (process.argv.length > 2){
     await main.scrapeAndSend(options);
   }

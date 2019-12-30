@@ -29,6 +29,14 @@ function watch(){
   }
 }
 
+function listJobs(){
+  let files = fs.readdirSync(jobsPath);
+  console.log('job'.padEnd(16), 'scuedule'.padEnd(16), 'send to'.padEnd(16), 'url');
+  for(file of files){
+    let config = require(`../${jobsPath}/${file}`);
+    console.log(file.padEnd(16), config.schedule.padEnd(16), config.to.padEnd(16), config.url);
+  }
+}
 
 function removeCron(file){
   let jobName = file.split('.')[0];
@@ -60,5 +68,6 @@ function refreshCron(file){
 module.exports = {
   watch,
   removeCron,
-  refreshCron
+  refreshCron,
+  listJobs,
 };
