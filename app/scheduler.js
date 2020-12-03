@@ -29,12 +29,24 @@ function watch(){
   }
 }
 
+function loadConfig(file){
+  let config = null;
+    try{
+      config = require(`../${jobsPath}/${file}`);
+    }catch(e){
+      console.error(`cannot load ${file}: ${e}`);
+    }
+    return  config;
+}
+
 function listJobs(){
   let files = fs.readdirSync(jobsPath);
   console.log('job'.padEnd(16), 'scuedule'.padEnd(16), 'send to'.padEnd(16), 'url');
   for(file of files){
-    let config = require(`../${jobsPath}/${file}`);
-    console.log(file.padEnd(16), config.schedule.padEnd(16), config.to.padEnd(16), config.url);
+      let config = loadConfig(file);
+      if (config) {
+        console.log(file.padEnd(16), config.schedule.padEnd(16), config.to.padEnd(16), config.url);
+      }
   }
 }
 
@@ -54,15 +66,17 @@ function refreshCron(file){
   } else {
     crons[jobName] = {};
   }
-  let config = require(`../${jobsPath}/${file}`);
-  crons[jobName].config = config;
-  log.debug(`scheduling ${jobName}: ${config.schedule} ${config.url}`);
-  crons[jobName].job = schedule.scheduleJob(config.schedule, async function(){
-    log.debug(`running ${jobName} on ${new Date()}`);
-    let scraper = new Scraper(config);
-    let resp = await scraper.execute();
-    mailer.send(resp, config);
-  });
+  let config = loadConfig(file);
+  if (config){
+    crons[jobName].config = config;
+    log.debug(`scheduling ${jobName}: ${config.schedule} ${config.url}`);
+    crons[jobName].job = schedule.scheduleJob(config.schedule, async function(){
+      log.debug(`running ${jobName} on ${new Date()}`);
+      let scraper = new Scraper(config);
+      let resp = await scraper.execute();
+      mailer.send(resp, config);
+    });
+  }
 }
 
 module.exports = {
