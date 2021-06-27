@@ -32,6 +32,8 @@ function watch(){
 function loadConfig(file){
   let config = null;
     try{
+      delete require.cache[require.resolve(`../${jobsPath}/${file}`)]
+
       config = require(`../${jobsPath}/${file}`);
     }catch(e){
       console.error(`cannot load ${file}: ${e}`);
@@ -41,11 +43,21 @@ function loadConfig(file){
 
 function listJobs(){
   let files = fs.readdirSync(jobsPath);
-  console.log('job'.padEnd(16), 'scuedule'.padEnd(16), 'send to'.padEnd(16), 'url');
+  console.log('job'.padEnd(16), 'scuedule'.padEnd(16),'next at'.padEnd(36), 'send to'.padEnd(16), 'url');
   for(file of files){
       let config = loadConfig(file);
       if (config) {
-        console.log(file.padEnd(16), config.schedule.padEnd(16), config.to.padEnd(16), config.url);
+        var job = new schedule.Job();
+        job.reschedule(config.schedule)
+        var nextTick=null;
+        try{
+          nextTick = job.nextInvocation()._date.toString()
+        } catch(e){
+          nextTick = 'invalid cron expression'
+        }
+
+        console.log(file.padEnd(16), config.schedule.padEnd(16),nextTick.padEnd(36) , config.to.padEnd(16), config.url);
+        job.cancel()
       }
   }
 }
@@ -62,20 +74,31 @@ function refreshCron(file){
   log.info(`loading job ${file}`);
   let jobName = file.split('.')[0];
   if (crons[jobName]){
-    crons[jobName].job.cancel();
+    try {
+      crons[jobName].job.cancel();
+    }catch(e){
+      console.log(`failed canceling ${jobName }: ${e.toString()}`)
+    }
   } else {
     crons[jobName] = {};
   }
   let config = loadConfig(file);
   if (config){
     crons[jobName].config = config;
-    log.debug(`scheduling ${jobName}: ${config.schedule} ${config.url}`);
+
     crons[jobName].job = schedule.scheduleJob(config.schedule, async function(){
       log.debug(`running ${jobName} on ${new Date()}`);
       let scraper = new Scraper(config);
       let resp = await scraper.execute();
       mailer.send(resp, config);
     });
+    var nextTick=null;
+    try{
+      nextTick = crons[jobName].job.nextInvocation()._date.toString()
+    } catch(e){
+      nextTick = `invalid cron expression`
+    }
+    log.debug(`scheduling ${jobName}: ${config.schedule} ${config.url} next at: ${nextTick}`);
   }
 }
 
