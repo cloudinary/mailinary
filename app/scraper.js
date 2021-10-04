@@ -7,7 +7,6 @@ const fs = require('fs');
 const util = require('util');
 const writeFile = util.promisify(fs.writeFile);
 
-
 class Scraper{
   constructor(options){
     this.options = options;
@@ -104,28 +103,34 @@ class Scraper{
     let selectors = this.evaluateSelectors(html);
 
     for (let selector of selectors){
+      try{
 
-      let screenshot_id = uuidv4();
-      await this.screenshotDOMElement({
-        path: `tmp/element_${screenshot_id}.jpg`,
-        selector: selector,
-        padding: 0,
-      });
+        log.info(`takeing a screenshot for ${selector}`);
+        let screenshot_id = uuidv4();
+        await this.screenshotDOMElement({
+          path: `tmp/element_${screenshot_id}.jpg`,
+          selector: selector,
+          padding: 0,
+        });
 
-      let resp = await cloudinary.v2.uploader.upload(
-        `tmp/element_${screenshot_id}.jpg`, 
-        {public_id:screenshot_id, folder: `mailinary/${this.runAt.format('YYYYMMDDTHHMM')}/${this.id}`, quality: 'auto:eco'}, 
-        (result)=> {},
-      );
+        log.info(`uploading to cloudinary as ${screenshot_id}`);
+        let resp = await cloudinary.v2.uploader.upload(
+          `tmp/element_${screenshot_id}.jpg`, 
+          {public_id:screenshot_id, folder: `mailinary/${this.runAt.format('YYYYMMDDTHHMM')}/${this.id}`, quality: 'auto:eco'}, 
+          (result)=> {},
+        );
 
-      log.info(`image loaded to: ${resp.url}`);
-
-      await this.replaceHtmlWithImage({
-        path: `tmp/element_${screenshot_id}.jpg`,
-        url: resp.secure_url,
-        selector: selector,
-        cid: screenshot_id,
-      });
+        log.info(`replacing element ${selector} content with image  ${resp.url}`);
+        await this.replaceHtmlWithImage({
+          path: `tmp/element_${screenshot_id}.jpg`,
+          url: resp.secure_url,
+          selector: selector,
+          cid: screenshot_id,
+        });
+      }catch(e){
+        log.warn(`failed to process element ${selector}`)
+        log.warn(e)
+      }
     }
   }
 
