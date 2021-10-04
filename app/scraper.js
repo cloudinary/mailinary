@@ -101,12 +101,15 @@ class Scraper{
   async scrape(){
     let html = await this.getPageHTML();
     let selectors = this.evaluateSelectors(html);
+    let empty_image = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg=="
 
     for (let selector of selectors){
-      try{
+      let replacement_image_path = empty_image;
+      let screenshot_id = uuidv4();
+
+      try {
 
         log.info(`takeing a screenshot for ${selector}`);
-        let screenshot_id = uuidv4();
         await this.screenshotDOMElement({
           path: `tmp/element_${screenshot_id}.jpg`,
           selector: selector,
@@ -119,17 +122,20 @@ class Scraper{
           {public_id:screenshot_id, folder: `mailinary/${this.runAt.format('YYYYMMDDTHHMM')}/${this.id}`, quality: 'auto:eco'}, 
           (result)=> {},
         );
+        replacement_image_path = resp.secure_url
 
-        log.info(`replacing element ${selector} content with image  ${resp.url}`);
+      } catch(e) {
+        log.warn(`failed to process element ${selector}`)
+        log.warn(e)
+        
+      } finally {
+        log.info(`replacing element ${selector} content with image  ${replacement_image_path}`);
         await this.replaceHtmlWithImage({
           path: `tmp/element_${screenshot_id}.jpg`,
-          url: resp.secure_url,
+          url: replacement_image_path,
           selector: selector,
           cid: screenshot_id,
         });
-      }catch(e){
-        log.warn(`failed to process element ${selector}`)
-        log.warn(e)
       }
     }
   }
