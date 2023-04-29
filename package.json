@@ -18,7 +18,7 @@
     "moment": "^2.29.1",
     "node-schedule": "^1.3.3",
     "nodemailer": "^6.6.5",
-    "nodemon": "^2.0.13",
+    "nodemon": "^2.0.22",
     "normalize-url": "^4.5.1",
     "puppeteer": "^10.4.0",
     "uuid": "^3.4.0"
