@@ -7,26 +7,27 @@ const program = require('commander');
 const main = require('../app/main.js');
 
 let dir = './tmp';
-if (!fs.existsSync(dir)){
-    fs.mkdirSync(dir);
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir);
 }
 
 
 function list(val) {
-  return val.split(',').map((item)=> item.trim());
+  return val.split(',').map((item) => item.trim());
 }
 
 program
-    .version('1.0')
-    .description('schedule scraping and sending of web pages')
-    .option('--scheduler', 'start as a scheduler process')
-    .option('--ls', 'list all scheduled jobs')
-    .option('--url [url]', 'which page to send', null)
-    .option('--subject [subject]', 'email subject', 'web2mail')
-    .option('--to [to]', 'email to', null)
-    .option('--from [from]', 'email from', null)
-    .option('--selectors <selectors>', 'css selectors to convert to image', list)
-    .option('--job <job>', 'job file path potentialy overrides other config options');
+  .version('1.0')
+  .description('schedule scraping and sending of web pages')
+  .option('--scheduler', 'start as a scheduler process')
+  .option('--ls', 'list all scheduled jobs')
+  .option('--url [url]', 'which page to send', null)
+  .option('--subject [subject]', 'email subject', 'web2mail')
+  .option('--to [to]', 'email to', null)
+  .option('--from [from]', 'email from', null)
+  .option('--selectors <selectors>', 'css selectors to convert to image', list)
+  .option('--job <job>', 'job file path potentialy overrides other config options')
+  .option('--session_id [session_id]', 'fix session id for debug purposes', null);
 
 program.parse(process.argv); // end with parse to parse through the input
 
@@ -36,17 +37,18 @@ let options = {
   to: program.to,
   from: program.from,
   selectors: program.selectors,
+  session_id: program.session_id,
 };
-if (program.job){
-  options = Object.assign(options, require(`../${program.job}`) );
+if (program.job) {
+  options = Object.assign(options, require(`../${program.job}`));
 }
 
 (async () => {
-  if (program.scheduler){
+  if (program.scheduler) {
     main.initScheduler(options);
   } else if (program.ls) {
     main.listJobs(options);
-  }else if (process.argv.length > 2){
+  } else if (process.argv.length > 2) {
     await main.scrapeAndSend(options);
   }
 })();
